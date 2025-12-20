@@ -1,7 +1,58 @@
 // Background service worker for the extension
-// Currently minimal - main functionality is in popup.js
-// Can be extended in the future for background tasks
 
+// Default prompt for quick send
+const DEFAULT_PROMPT = "What are the key points, aha moments, and actionable insights";
+
+// Prompt options
+const PROMPTS = [
+  { id: "key-insights", title: "✨ Key Insights", prompt: "What are the key points, aha moments, and actionable insights" },
+  { id: "summarize", title: "📝 Summarize", prompt: "Summarize this page" },
+  { id: "eli5", title: "💡 ELI5", prompt: "Explain this page in simple terms" },
+  { id: "pros-cons", title: "⚖️ Pros & Cons", prompt: "What are the pros and cons discussed on this page?" },
+  { id: "research", title: "🔍 Research", prompt: "Find additional sources and context for" }
+];
+
+// Function to send URL to Perplexity
+async function sendToPerplexity(prompt, tabId = null) {
+  let currentUrl;
+
+  if (tabId) {
+    const tab = await chrome.tabs.get(tabId);
+    currentUrl = tab.url;
+  } else {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    currentUrl = tab.url;
+  }
+
+  const query = encodeURIComponent(`${prompt}: ${currentUrl}`);
+  const perplexityUrl = `https://www.perplexity.ai/search?q=${query}`;
+
+  chrome.tabs.create({ url: perplexityUrl });
+}
+
+// Handle extension icon click - quick send with default prompt
+chrome.action.onClicked.addListener(async (tab) => {
+  await sendToPerplexity(DEFAULT_PROMPT);
+});
+
+// Create context menus on install
 chrome.runtime.onInstalled.addListener(() => {
   console.log('Send to Perplexity extension installed');
+
+  // Create a menu item for each prompt
+  PROMPTS.forEach(promptOption => {
+    chrome.contextMenus.create({
+      id: promptOption.id,
+      title: promptOption.title,
+      contexts: ["page"]
+    });
+  });
+});
+
+// Handle context menu clicks
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+  const selectedPrompt = PROMPTS.find(p => p.id === info.menuItemId);
+  if (selectedPrompt) {
+    sendToPerplexity(selectedPrompt.prompt, tab.id);
+  }
 });

@@ -1,19 +1,19 @@
 # Send to Perplexity - Chrome Extension
 
-A Chrome extension that lets you send the current page URL to Perplexity with preset or custom prompts.
+A Chrome extension that lets you instantly send the current page URL to Perplexity for AI-powered analysis.
 
 ## Features
 
-- **5 Preset Prompts:**
-  - ✨ Key Insights - Extract key points, aha moments, and actionable insights
+- **Quick Send:** Click the extension icon to instantly send the page with the default prompt
+- **5 Preset Prompts** (via right-click context menu):
+  - ✨ Key Insights - Extract key points, aha moments, and actionable insights (default)
   - 📝 Summarize - Get a concise summary
   - 💡 ELI5 - Explain in simple terms
   - ⚖️ Pros & Cons - Analyze arguments
   - 🔍 Research - Find additional sources
 
-- **Custom Prompt Mode:** Type your own prompt for maximum flexibility
-- **Memory:** Remembers your last custom prompt
-- **One-Click:** Opens Perplexity in a new tab with your query ready
+- **Fast & Simple:** No popup to slow you down
+- **Context Menu Access:** Right-click anywhere for all prompt options
 
 ## Installation
 
@@ -25,17 +25,22 @@ A Chrome extension that lets you send the current page URL to Perplexity with pr
 
 ## Usage
 
+### Quick Send (Default Prompt)
 1. Navigate to any webpage
-2. Click the extension icon in your toolbar
-3. Choose a preset prompt or enter a custom one
-4. The extension opens Perplexity with your prompt + the current URL
+2. Click the extension icon
+3. Perplexity opens in a new tab with the "Key Insights" prompt
+
+### Choose a Different Prompt
+1. Navigate to any webpage
+2. Right-click anywhere on the page
+3. Select one of the "Send to Perplexity" prompt options from the context menu
+4. Perplexity opens in a new tab with your chosen prompt
 
 ## Files
 
 - `manifest.json` - Extension configuration
-- `popup.html` - User interface
-- `popup.js` - Main functionality
-- `background.js` - Service worker (minimal)
+- `background.js` - Main functionality (icon clicks, context menus)
+- `popup.html` / `popup.js` - Unused (legacy files)
 
 ## Privacy
 

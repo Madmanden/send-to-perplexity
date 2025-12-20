@@ -3,10 +3,9 @@
   "name": "Send to Perplexity",
   "version": "1.0",
   "description": "Send current URL to Perplexity with custom prompts",
-  "permissions": ["activeTab", "storage"],
+  "permissions": ["activeTab", "storage", "contextMenus"],
   "action": {
-    "default_popup": "popup.html",
-    "default_title": "Send to Perplexity",
+    "default_title": "Send to Perplexity (Quick Send)",
     "default_icon": {
       "16": "icon16.png",
       "48": "icon48.png",
