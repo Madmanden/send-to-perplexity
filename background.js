@@ -1,16 +1,15 @@
 // Background service worker for the extension
 
 // Default prompt for quick send
-const DEFAULT_PROMPT = "What are the key points, aha moments, and actionable insights";
+const DEFAULT_PROMPT = "Extract the key takeaways and actionable insights from this content. Focus on novel insights, important implications, and specific actions that can be taken";
 
 // Prompt options
 const PROMPTS = [
-  { id: "key-insights", title: "✨ Key Insights", prompt: "What are the key points, aha moments, and actionable insights" },
-  { id: "quick-summary", title: "🎯 Quick Summary", prompt: "Give me 2 line summary of the main point in simple terms" },
-  { id: "summarize", title: "📝 Summarize", prompt: "Summarize this page" },
-  { id: "eli5", title: "💡 ELI5", prompt: "Explain this page in simple terms" },
-  { id: "pros-cons", title: "⚖️ Pros & Cons", prompt: "What are the pros and cons discussed on this page?" },
-  { id: "research", title: "🔍 Research", prompt: "Find additional sources and context for" }
+  { id: "key-insights", title: "✨ Key Insights", prompt: "Extract the key takeaways and actionable insights from this content. Focus on novel insights, important implications, and specific actions that can be taken" },
+  { id: "quick-digest", title: "🎯 Quick Digest", prompt: "Provide a concise 2-3 sentence summary explaining the main concept in clear, accessible language. Assume no prior knowledge of the topic" },
+  { id: "comprehensive-summary", title: "📋 Comprehensive Summary", prompt: "Provide a structured summary with: Main topic and context; Key claims or findings; Supporting evidence; Conclusion. Keep it concise but complete" },
+  { id: "critical-analysis", title: "🔍 Critical Analysis", prompt: "Analyze the main arguments presented. For each major claim: identify the evidence supporting it, potential weaknesses, and any counterarguments" },
+  { id: "research-context", title: "🌐 Research Context", prompt: "Find additional sources, expert perspectives, and related research on this topic. Suggest 3-5 credible resources or viewpoints that provide more context" }
 ];
 
 // Helper function to save prompt metadata
