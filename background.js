@@ -1,11 +1,11 @@
 // Background service worker for the extension
 
 // Default prompt for quick send
-const DEFAULT_PROMPT = "Extract the key takeaways and actionable insights from this content. Focus on novel insights, important implications, and specific actions that can be taken";
+const DEFAULT_PROMPT = "Extract the core ideas, actionable takeaways, and unique insights from this site, separating high-value signal from filler";
 
 // Prompt options
 const PROMPTS = [
-  { id: "key-insights", title: "✨ Key Insights", prompt: "Extract the key takeaways and actionable insights from this content. Focus on novel insights, important implications, and specific actions that can be taken" },
+  { id: "key-insights", title: "✨ Key Insights", prompt: "Extract the core ideas, actionable takeaways, and unique insights from this site, separating high-value signal from filler" },
   { id: "quick-digest", title: "🎯 Quick Digest", prompt: "Provide a concise 2-3 sentence summary explaining the main concept in clear, accessible language. Assume no prior knowledge of the topic" },
   { id: "comprehensive-summary", title: "📋 Comprehensive Summary", prompt: "Provide a structured summary with: Main topic and context; Key claims or findings; Supporting evidence; Conclusion. Keep it concise but complete" },
   { id: "critical-analysis", title: "🔍 Critical Analysis", prompt: "Analyze the main arguments presented. For each major claim: identify the evidence supporting it, potential weaknesses, and any counterarguments" },
