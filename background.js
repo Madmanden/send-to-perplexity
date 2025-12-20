@@ -6,8 +6,8 @@ const DEFAULT_PROMPT = "What are the key points, aha moments, and actionable ins
 // Prompt options
 const PROMPTS = [
   { id: "key-insights", title: "✨ Key Insights", prompt: "What are the key points, aha moments, and actionable insights" },
+  { id: "quick-summary", title: "🎯 Quick Summary", prompt: "Give me 2 line summary of the main point in simple terms" },
   { id: "summarize", title: "📝 Summarize", prompt: "Summarize this page" },
-  { id: "quick-summary", title: "🎯 Quick Summary", prompt: "Give me 2 line summary of the main point in simple terms:" },
   { id: "eli5", title: "💡 ELI5", prompt: "Explain this page in simple terms" },
   { id: "pros-cons", title: "⚖️ Pros & Cons", prompt: "What are the pros and cons discussed on this page?" },
   { id: "research", title: "🔍 Research", prompt: "Find additional sources and context for" }
