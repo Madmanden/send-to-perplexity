@@ -2,6 +2,17 @@
 document.querySelectorAll('.prompt-option').forEach(option => {
   option.addEventListener('click', async () => {
     const prompt = option.dataset.prompt;
+    const promptId = option.dataset.id;
+
+    // Save to storage
+    await chrome.storage.local.set({
+      lastPromptMeta: {
+        type: 'preset',
+        id: promptId,
+        text: prompt
+      }
+    });
+
     await sendToPerplexity(prompt);
   });
 });
@@ -10,9 +21,17 @@ document.querySelectorAll('.prompt-option').forEach(option => {
 document.getElementById('sendCustom').addEventListener('click', async () => {
   const customPrompt = document.getElementById('customPrompt').value.trim();
   if (customPrompt) {
+    // Save to storage
+    await chrome.storage.local.set({
+      lastCustomPrompt: customPrompt,
+      lastPromptMeta: {
+        type: 'custom',
+        id: null,
+        text: customPrompt
+      }
+    });
+
     await sendToPerplexity(customPrompt);
-    // Save the custom prompt for next time
-    chrome.storage.local.set({ lastCustomPrompt: customPrompt });
   }
 });
 
