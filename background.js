@@ -45,14 +45,12 @@ async function sendToPerplexity(prompt, tabId = null) {
 
 function parseOmniboxInput(rawText) {
   const text = (rawText || "").trim();
-  const match = text.match(/^(t|r)\s+(.*)$/i);
+  const match = text.match(/^r\s+(.*)$/i);
   if (!match) {
     return { mode: "p", query: text };
   }
 
-  const mode = match[1].toLowerCase();
-  const query = (match[2] || "").trim();
-  return { mode, query };
+  return { mode: "r", query: match[1] };
 }
 
 function buildPerplexityOmniboxQuery(mode, query) {
@@ -63,10 +61,6 @@ function buildPerplexityOmniboxQuery(mode, query) {
 
   if (mode === "r") {
     return `${cleanedQuery} site:reddit.com`;
-  }
-
-  if (mode === "t") {
-    return `Use a careful, step-by-step approach. ${cleanedQuery}`;
   }
 
   return cleanedQuery;
@@ -161,11 +155,9 @@ chrome.omnibox.onInputChanged.addListener((text, suggest) => {
   const safeText = escapeOmniboxDescription(text || "");
 
   const modeDescription =
-    mode === "t"
-      ? "Thinking"
-      : mode === "r"
-          ? "Reddit"
-          : "Perplexity";
+    mode === "r"
+      ? "Reddit"
+      : "Perplexity";
 
   chrome.omnibox.setDefaultSuggestion({
     description: `Search Perplexity (${modeDescription}): ${safeText}`
@@ -173,7 +165,6 @@ chrome.omnibox.onInputChanged.addListener((text, suggest) => {
 
   suggest([
     { content: text || "", description: "p <query> - Perplexity search" },
-    { content: `t ${text || ""}`.trim(), description: "t <query> - Thinking search" },
     { content: `r ${text || ""}`.trim(), description: "r <query> - Reddit search" }
   ]);
 });
