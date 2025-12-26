@@ -15,6 +15,7 @@ A Chrome extension that lets you instantly send the current page URL to Perplexi
 - **Custom Prompts:** Write your own prompts via context menu popup
 - **Memory:** Remembers your last used prompt (preset or custom)
 - **Context Menu Access:** Right-click anywhere for all options
+- **Omnibox Search:** Type `p` + Tab in address bar for quick Perplexity searches
 
 ## Installation
 
@@ -45,6 +46,15 @@ A Chrome extension that lets you instantly send the current page URL to Perplexi
 5. Click "Send to Perplexity" or press Enter
 
 The extension remembers your last custom prompt and your last-used prompt (preset or custom) for quick access via the icon button.
+
+### Omnibox Search (Address Bar)
+Type `p` + Tab in the Chrome address bar, then:
+- `your query` - Search Perplexity normally
+- `r your query` - Search Reddit only (adds `site:reddit.com`)
+
+Examples:
+- `p best coffee shops` → Searches Perplexity for "best coffee shops"
+- `p r best coffee shops` → Searches Reddit for "best coffee shops"
 
 ## Files
 
