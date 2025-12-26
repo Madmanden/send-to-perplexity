@@ -43,6 +43,55 @@ async function sendToPerplexity(prompt, tabId = null) {
   chrome.tabs.create({ url: perplexityUrl });
 }
 
+function parseOmniboxInput(rawText) {
+  const text = (rawText || "").trim();
+  const match = text.match(/^(t|r)\s+(.*)$/i);
+  if (!match) {
+    return { mode: "p", query: text };
+  }
+
+  const mode = match[1].toLowerCase();
+  const query = (match[2] || "").trim();
+  return { mode, query };
+}
+
+function buildPerplexityOmniboxQuery(mode, query) {
+  const cleanedQuery = (query || "").trim();
+  if (!cleanedQuery) {
+    return "";
+  }
+
+  if (mode === "r") {
+    return `${cleanedQuery} site:reddit.com`;
+  }
+
+  if (mode === "t") {
+    return `Use a careful, step-by-step approach. ${cleanedQuery}`;
+  }
+
+  return cleanedQuery;
+}
+
+function openPerplexitySearch(query) {
+  const trimmedQuery = (query || "").trim();
+  if (!trimmedQuery) {
+    return;
+  }
+
+  const encoded = encodeURIComponent(trimmedQuery);
+  const url = `https://www.perplexity.ai/search?q=${encoded}`;
+  chrome.tabs.create({ url });
+}
+
+function escapeOmniboxDescription(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
 // Handle extension icon click - quick send with last used prompt
 chrome.action.onClicked.addListener(async (tab) => {
   const data = await chrome.storage.local.get(['lastPromptMeta']);
@@ -105,4 +154,32 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     // Send to Perplexity
     await sendToPerplexity(selectedPrompt.prompt, tab.id);
   }
+});
+
+chrome.omnibox.onInputChanged.addListener((text, suggest) => {
+  const { mode } = parseOmniboxInput(text);
+  const safeText = escapeOmniboxDescription(text || "");
+
+  const modeDescription =
+    mode === "t"
+      ? "Thinking"
+      : mode === "r"
+          ? "Reddit"
+          : "Perplexity";
+
+  chrome.omnibox.setDefaultSuggestion({
+    description: `Search Perplexity (${modeDescription}): ${safeText}`
+  });
+
+  suggest([
+    { content: text || "", description: "p <query> - Perplexity search" },
+    { content: `t ${text || ""}`.trim(), description: "t <query> - Thinking search" },
+    { content: `r ${text || ""}`.trim(), description: "r <query> - Reddit search" }
+  ]);
+});
+
+chrome.omnibox.onInputEntered.addListener((text) => {
+  const { mode, query } = parseOmniboxInput(text);
+  const perplexityQuery = buildPerplexityOmniboxQuery(mode, query);
+  openPerplexitySearch(perplexityQuery);
 });

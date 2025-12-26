@@ -4,6 +4,9 @@
   "version": "1.0",
   "description": "Send current URL to Perplexity with custom prompts",
   "permissions": ["activeTab", "storage", "contextMenus"],
+  "omnibox": {
+    "keyword": "p"
+  },
   "action": {
     "default_title": "Send to Perplexity (Quick Send)",
     "default_icon": {
