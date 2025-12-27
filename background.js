@@ -74,7 +74,16 @@ function openPerplexitySearch(query) {
 
   const encoded = encodeURIComponent(trimmedQuery);
   const url = `https://www.perplexity.ai/search?q=${encoded}`;
-  chrome.tabs.create({ url });
+  
+  // Get the active tab and update it instead of creating a new one
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (tabs[0]) {
+      chrome.tabs.update(tabs[0].id, { url });
+    } else {
+      // Fallback: create new tab if no active tab found
+      chrome.tabs.create({ url });
+    }
+  });
 }
 
 function escapeOmniboxDescription(value) {
