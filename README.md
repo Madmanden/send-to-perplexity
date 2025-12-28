@@ -5,15 +5,17 @@ A Chrome extension that lets you instantly send the current page URL to Perplexi
 ## Features
 
 - **Smart Quick Send:** Click the extension icon to use your last-used prompt (defaults to Key Insights)
-- **5 Optimized Prompts** (via right-click context menu):
+- **7 Optimized Prompts** (via right-click context menu):
   - ✨ Key Insights - Extract core ideas, actionable takeaways, and unique insights, separating signal from filler
   - 🎯 Quick Digest - 2-3 sentence summary in accessible language
   - 📋 Comprehensive Summary - Structured overview with topic, claims, evidence, and conclusion
   - 🔍 Critical Analysis - Analyze arguments with evidence evaluation and counterarguments
   - 🌐 Research Context - Find 3-5 credible sources and expert perspectives
+  - 🎥 Video Learning - Structure video content for learning without watching
+  - ⏱️ Timestamped Summary - Video summaries with timestamps and insights
 
-- **Custom Prompts:** Write your own prompts via context menu popup
-- **Memory:** Remembers your last used prompt (preset or custom)
+- **Customizable:** Add, edit, delete, and reorder prompts via the options page
+- **Memory:** Remembers your last used prompt for quick access
 - **Context Menu Access:** Right-click anywhere for all options
 - **Omnibox Search:** Type `p` + Tab in address bar for quick Perplexity searches
 
@@ -35,17 +37,19 @@ A Chrome extension that lets you instantly send the current page URL to Perplexi
 ### Choose a Preset Prompt
 1. Navigate to any webpage
 2. Right-click anywhere on the page
-3. Select one of the 5 preset prompt options from the context menu
+3. Select one of the preset prompt options from the context menu
 4. Perplexity opens in a new tab with your chosen prompt
 
-### Use a Custom Prompt
-1. Navigate to any webpage
-2. Right-click anywhere on the page
-3. Select "Custom prompt..." from the context menu
-4. Enter your custom prompt in the popup window
-5. Click "Send to Perplexity" or press Enter
+The extension remembers your last-used prompt for quick access via the icon button.
 
-The extension remembers your last custom prompt and your last-used prompt (preset or custom) for quick access via the icon button.
+### Customize Prompts
+1. Right-click the extension icon and select "Options"
+2. Add new prompts with the "Add New Prompt" button
+3. Edit existing prompt titles and text
+4. Drag and drop prompts to reorder them
+5. Delete prompts you don't need
+6. Click "Save Changes" to apply
+7. Use "Reset to Defaults" to restore the original 7 prompts
 
 ### Omnibox Search (Address Bar)
 Type `p` + Tab in the Chrome address bar, then:
@@ -58,19 +62,21 @@ Examples:
 
 ## Files
 
-- `manifest.json` - Extension configuration
-- `background.js` - Main functionality (icon clicks, context menus, storage)
-- `popup.html` / `popup.js` - Optional popup UI with all prompts
-- `custom-prompt.html` / `custom-prompt.js` - Custom prompt entry popup
+- `manifest.json` - Extension configuration (Manifest V3)
+- `constants.js` - Shared constants and default prompts
+- `background.js` - Service worker (main functionality, context menus, storage)
+- `popup.html` / `popup.js` - Popup UI with all available prompts
+- `options.html` / `options.js` - Options page for customizing prompts
 
 ## Privacy
 
 This extension:
-- Only accesses the current tab's URL when you use it
-- Stores your last-used prompt and custom prompts locally in your browser
-- Does not send data to any server except Perplexity (via URL)
+- Only accesses the current tab's URL when you explicitly use it
+- Stores your prompts and last-used prompt locally in your browser only
+- Does not send data to any server except Perplexity (via URL parameters)
 - Does not use Perplexity's API
-- No telemetry or tracking
+- No telemetry, analytics, or tracking of any kind
+- All data stays on your device
 
 ## License
 

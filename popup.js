@@ -1,13 +1,4 @@
-// Default prompts to use if none are stored
-const DEFAULT_PROMPTS = [
-  { id: "key-insights", title: "✨ Key Insights", prompt: "Extract the core ideas, actionable takeaways, and unique insights from this site, separating high-value signal from filler" },
-  { id: "quick-digest", title: "🎯 Quick Digest", prompt: "Provide a concise 2-3 sentence summary explaining the main concept in clear, accessible language. Assume no prior knowledge of the topic" },
-  { id: "comprehensive-summary", title: "📋 Comprehensive Summary", prompt: "Provide a structured summary with: Main topic and context; Key claims or findings; Supporting evidence; Conclusion. Keep it concise but complete" },
-  { id: "critical-analysis", title: "🔍 Critical Analysis", prompt: "Analyze the main arguments presented. For each major claim: identify the evidence supporting it, potential weaknesses, and any counterarguments" },
-  { id: "research-context", title: "🌐 Research Context", prompt: "Find additional sources, expert perspectives, and related research on this topic. Suggest 3-5 credible resources or viewpoints that provide more context" },
-  { id: "video-learning", title: "🎥 Video Learning", prompt: "I'm interested in learning the topics in this video. Structure its content so I can maximize my learning without having to watch the video" },
-  { id: "video-timestamps", title: "⏱️ Timestamped Summary", prompt: "Provide a timestamped summary of this video with 3-5 word descriptions for each major section, then list the single most valuable insight from each section" }
-];
+import { DEFAULT_PROMPTS, PERPLEXITY_SEARCH_URL, MAX_QUERY_LENGTH } from './constants.js';
 
 const promptsContainer = document.getElementById('prompts-container');
 
@@ -58,14 +49,44 @@ function renderPrompts(prompts) {
 
 // Function to send URL to Perplexity
 async function sendToPerplexity(prompt) {
-  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  const currentUrl = tab.url;
-  
-  const query = encodeURIComponent(`${prompt}: ${currentUrl}`);
-  const perplexityUrl = `https://www.perplexity.ai/search?q=${query}`;
-  
-  chrome.tabs.create({ url: perplexityUrl });
-  window.close(); // Close the popup after sending
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
+    if (!tab || !tab.url) {
+      console.error('No active tab found');
+      return;
+    }
+
+    const currentUrl = tab.url;
+
+    // Validate URL protocol
+    if (!currentUrl.startsWith('http://') && !currentUrl.startsWith('https://')) {
+      console.error('Invalid URL protocol:', currentUrl);
+      return;
+    }
+
+    const fullQuery = `${prompt}: ${currentUrl}`;
+    const encodedQuery = encodeURIComponent(fullQuery);
+
+    // Validate query length to avoid URL length limits
+    if (encodedQuery.length > MAX_QUERY_LENGTH) {
+      console.error('Query too long:', encodedQuery.length, 'characters');
+      // Truncate the URL if needed
+      const maxUrlLength = MAX_QUERY_LENGTH - encodeURIComponent(`${prompt}: `).length - 20;
+      const truncatedUrl = currentUrl.substring(0, maxUrlLength) + '...';
+      const truncatedQuery = encodeURIComponent(`${prompt}: ${truncatedUrl}`);
+      const perplexityUrl = PERPLEXITY_SEARCH_URL + truncatedQuery;
+      chrome.tabs.create({ url: perplexityUrl });
+      window.close();
+      return;
+    }
+
+    const perplexityUrl = PERPLEXITY_SEARCH_URL + encodedQuery;
+    chrome.tabs.create({ url: perplexityUrl });
+    window.close(); // Close the popup after sending
+  } catch (error) {
+    console.error('Error sending to Perplexity:', error);
+  }
 }
 
 document.addEventListener('DOMContentLoaded', initPopup);
