@@ -25,20 +25,27 @@ function renderPrompts(prompts) {
     const card = document.createElement('div');
     card.className = 'prompt-card';
     card.draggable = true;
+    
+    // Use innerHTML for structure but be careful with values
     card.innerHTML = `
       <div class="drag-handle">⋮⋮</div>
       <button class="delete-btn" data-index="${index}" title="Delete prompt">×</button>
       <div class="prompt-header">
         <div class="input-group">
           <label style="margin-left: 20px;">Title</label>
-          <input type="text" class="prompt-title" value="${p.title}" data-id="${p.id}">
+          <input type="text" class="prompt-title" data-id="${p.id}">
         </div>
       </div>
       <div class="input-group">
         <label style="margin-left: 20px;">Prompt Template</label>
-        <textarea class="prompt-text" data-id="${p.id}">${p.prompt}</textarea>
+        <textarea class="prompt-text" data-id="${p.id}"></textarea>
       </div>
     `;
+    
+    // Set values safely to prevent XSS
+    card.querySelector('.prompt-title').value = p.title;
+    card.querySelector('.prompt-text').value = p.prompt;
+    
     container.appendChild(card);
 
     card.addEventListener('dragstart', (e) => {

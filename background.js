@@ -58,20 +58,28 @@ async function savePromptMeta(type, promptId, promptText) {
 
 // Function to send URL to Perplexity
 async function sendToPerplexity(prompt, tabId = null) {
-  let currentUrl;
+  try {
+    let currentUrl;
 
-  if (tabId) {
-    const tab = await chrome.tabs.get(tabId);
-    currentUrl = tab.url;
-  } else {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    currentUrl = tab.url;
+    if (tabId) {
+      const tab = await chrome.tabs.get(tabId);
+      currentUrl = tab.url;
+    } else {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!tab) {
+        console.error("No active tab found");
+        return;
+      }
+      currentUrl = tab.url;
+    }
+
+    const query = encodeURIComponent(`${prompt}: ${currentUrl}`);
+    const perplexityUrl = `https://www.perplexity.ai/search?q=${query}`;
+
+    chrome.tabs.create({ url: perplexityUrl });
+  } catch (error) {
+    console.error("Error sending to Perplexity:", error);
   }
-
-  const query = encodeURIComponent(`${prompt}: ${currentUrl}`);
-  const perplexityUrl = `https://www.perplexity.ai/search?q=${query}`;
-
-  chrome.tabs.create({ url: perplexityUrl });
 }
 
 function parseOmniboxInput(rawText) {
@@ -108,7 +116,13 @@ function openPerplexitySearch(query) {
   
   // Get the active tab and update it instead of creating a new one
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    if (tabs[0]) {
+    if (chrome.runtime.lastError) {
+      console.error("Error querying tabs:", chrome.runtime.lastError);
+      chrome.tabs.create({ url });
+      return;
+    }
+
+    if (tabs && tabs[0]) {
       chrome.tabs.update(tabs[0].id, { url });
     } else {
       // Fallback: create new tab if no active tab found

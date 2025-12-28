@@ -27,13 +27,17 @@ function renderPrompts(prompts) {
     option.dataset.id = p.id;
     option.dataset.prompt = p.prompt;
     
-    // Create a simplified preview from the prompt
-    const previewText = p.prompt.length > 50 ? p.prompt.substring(0, 47) + '...' : p.prompt;
+    const titleDiv = document.createElement('div');
+    titleDiv.className = 'prompt-title';
+    titleDiv.textContent = p.title;
     
-    option.innerHTML = `
-      <div class="prompt-title">${p.title}</div>
-      <div class="prompt-preview">${previewText}</div>
-    `;
+    const previewDiv = document.createElement('div');
+    previewDiv.className = 'prompt-preview';
+    const previewText = p.prompt.length > 50 ? p.prompt.substring(0, 47) + '...' : p.prompt;
+    previewDiv.textContent = previewText;
+    
+    option.appendChild(titleDiv);
+    option.appendChild(previewDiv);
     
     option.addEventListener('click', async () => {
       // Save to storage
