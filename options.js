@@ -27,7 +27,7 @@ function renderPrompts(prompts) {
     card.innerHTML = `
       <div class="prompt-header">
         <div class="input-group">
-          <label>Title (with Emoji)</label>
+          <label>Title</label>
           <input type="text" class="prompt-title" value="${p.title}" data-id="${p.id}">
         </div>
       </div>
