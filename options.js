@@ -24,20 +24,42 @@ function renderPrompts(prompts) {
   prompts.forEach((p, index) => {
     const card = document.createElement('div');
     card.className = 'prompt-card';
+    card.draggable = true;
     card.innerHTML = `
+      <div class="drag-handle">⋮⋮</div>
       <button class="delete-btn" data-index="${index}" title="Delete prompt">×</button>
       <div class="prompt-header">
         <div class="input-group">
-          <label>Title</label>
+          <label style="margin-left: 20px;">Title</label>
           <input type="text" class="prompt-title" value="${p.title}" data-id="${p.id}">
         </div>
       </div>
       <div class="input-group">
-        <label>Prompt Template</label>
+        <label style="margin-left: 20px;">Prompt Template</label>
         <textarea class="prompt-text" data-id="${p.id}">${p.prompt}</textarea>
       </div>
     `;
     container.appendChild(card);
+
+    card.addEventListener('dragstart', (e) => {
+      card.classList.add('dragging');
+      e.dataTransfer.setData('text/plain', index);
+    });
+
+    card.addEventListener('dragend', () => {
+      card.classList.remove('dragging');
+    });
+  });
+
+  container.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    const afterElement = getDragAfterElement(container, e.clientY);
+    const dragging = document.querySelector('.dragging');
+    if (afterElement == null) {
+      container.appendChild(dragging);
+    } else {
+      container.insertBefore(dragging, afterElement);
+    }
   });
 
   // Add delete event listeners
@@ -47,6 +69,20 @@ function renderPrompts(prompts) {
       deletePrompt(index);
     });
   });
+}
+
+function getDragAfterElement(container, y) {
+  const draggableElements = [...container.querySelectorAll('.prompt-card:not(.dragging)')];
+
+  return draggableElements.reduce((closest, child) => {
+    const box = child.getBoundingClientRect();
+    const offset = y - box.top - box.height / 2;
+    if (offset < 0 && offset > closest.offset) {
+      return { offset: offset, element: child };
+    } else {
+      return closest;
+    }
+  }, { offset: Number.NEGATIVE_INFINITY }).element;
 }
 
 function deletePrompt(index) {
