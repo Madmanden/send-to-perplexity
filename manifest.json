@@ -4,6 +4,10 @@
   "version": "1.0",
   "description": "Send current URL to Perplexity with custom prompts",
   "permissions": ["activeTab", "storage", "contextMenus"],
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
   "omnibox": {
     "keyword": "p"
   },
