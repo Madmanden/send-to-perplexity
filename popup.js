@@ -52,31 +52,6 @@ function renderPrompts(prompts) {
   });
 }
 
-// Handle custom prompt
-document.getElementById('sendCustom').addEventListener('click', async () => {
-  const customPrompt = document.getElementById('customPrompt').value.trim();
-  if (customPrompt) {
-    // Save to storage
-    await chrome.storage.local.set({
-      lastCustomPrompt: customPrompt,
-      lastPromptMeta: {
-        type: 'custom',
-        id: null,
-        text: customPrompt
-      }
-    });
-
-    await sendToPerplexity(customPrompt);
-  }
-});
-
-// Load last custom prompt
-chrome.storage.local.get(['lastCustomPrompt'], (result) => {
-  if (result.lastCustomPrompt) {
-    document.getElementById('customPrompt').value = result.lastCustomPrompt;
-  }
-});
-
 // Function to send URL to Perplexity
 async function sendToPerplexity(prompt) {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });

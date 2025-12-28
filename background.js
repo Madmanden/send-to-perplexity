@@ -34,13 +34,6 @@ function updateContextMenus() {
         contexts: ["page"]
       });
     });
-
-    // Add custom prompt menu item
-    chrome.contextMenus.create({
-      id: "custom-prompt",
-      title: "✏️ Custom prompt...",
-      contexts: ["page"]
-    });
   });
 }
 
@@ -160,19 +153,6 @@ chrome.runtime.onInstalled.addListener(async () => {
 
 // Handle context menu clicks
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
-  // Handle custom prompt option
-  if (info.menuItemId === "custom-prompt") {
-    // Save the current tab URL for the popup to use
-    await chrome.storage.local.set({ currentTabUrl: tab.url });
-    chrome.windows.create({
-      url: 'custom-prompt.html',
-      type: 'popup',
-      width: 420,
-      height: 230
-    });
-    return;
-  }
-
   // Handle preset prompts
   const selectedPrompt = currentPrompts.find(p => p.id === info.menuItemId);
   if (selectedPrompt) {
