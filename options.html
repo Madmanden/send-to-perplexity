@@ -28,6 +28,35 @@
       padding: 24px;
       margin-bottom: 24px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      position: relative;
+    }
+    .delete-btn {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: none;
+      border: none;
+      color: #d73a49;
+      cursor: pointer;
+      font-size: 18px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      transition: background-color 0.2s;
+    }
+    .delete-btn:hover {
+      background-color: #ffeef0;
+    }
+    .add-section {
+      margin-bottom: 32px;
+      text-align: right;
+    }
+    .btn-add {
+      background-color: #28a745;
+      color: white;
+      border: none;
+    }
+    .btn-add:hover {
+      background-color: #218838;
     }
     .prompt-header {
       display: flex;
@@ -112,6 +141,10 @@
 <body>
   <h1>Send to Perplexity Options</h1>
   <p class="subtitle">Customize the preset prompts for your search analysis.</p>
+
+  <div class="add-section">
+    <button id="add-prompt" class="btn-add">Add New Prompt</button>
+  </div>
 
   <div id="prompts-container">
     <!-- Prompts will be injected here -->

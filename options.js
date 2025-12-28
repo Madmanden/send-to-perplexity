@@ -25,6 +25,7 @@ function renderPrompts(prompts) {
     const card = document.createElement('div');
     card.className = 'prompt-card';
     card.innerHTML = `
+      <button class="delete-btn" data-index="${index}" title="Delete prompt">×</button>
       <div class="prompt-header">
         <div class="input-group">
           <label>Title</label>
@@ -38,7 +39,43 @@ function renderPrompts(prompts) {
     `;
     container.appendChild(card);
   });
+
+  // Add delete event listeners
+  document.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const index = parseInt(e.target.dataset.index);
+      deletePrompt(index);
+    });
+  });
 }
+
+function deletePrompt(index) {
+  chrome.storage.local.get(['customPrompts'], (result) => {
+    const prompts = result.customPrompts || [...DEFAULT_PROMPTS];
+    prompts.splice(index, 1);
+    chrome.storage.local.set({ customPrompts: prompts }, () => {
+      renderPrompts(prompts);
+      showStatus('Prompt deleted');
+    });
+  });
+}
+
+// Add new prompt
+document.getElementById('add-prompt').addEventListener('click', () => {
+  chrome.storage.local.get(['customPrompts'], (result) => {
+    const prompts = result.customPrompts || [...DEFAULT_PROMPTS];
+    const newPrompt = {
+      id: 'custom-' + Date.now(),
+      title: 'New Prompt',
+      prompt: ''
+    };
+    prompts.push(newPrompt);
+    chrome.storage.local.set({ customPrompts: prompts }, () => {
+      renderPrompts(prompts);
+      showStatus('New prompt added');
+    });
+  });
+});
 
 // Save prompts to storage
 document.getElementById('save').addEventListener('click', () => {
