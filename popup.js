@@ -1,6 +1,29 @@
 import { DEFAULT_PROMPTS, PERPLEXITY_SEARCH_URL, MAX_QUERY_LENGTH } from './constants.js';
+import { buildPerplexitySearchUrl } from './perplexity.js';
 
 const promptsContainer = document.getElementById('prompts-container');
+
+function getOrCreateStatusElement() {
+  let el = document.getElementById('status');
+  if (el) {
+    return el;
+  }
+
+  el = document.createElement('div');
+  el.id = 'status';
+  el.style.marginTop = '10px';
+  el.style.fontSize = '12px';
+  el.style.color = '#d73a49';
+  el.style.display = 'none';
+  promptsContainer.insertAdjacentElement('afterend', el);
+  return el;
+}
+
+function showStatus(message) {
+  const el = getOrCreateStatusElement();
+  el.textContent = message;
+  el.style.display = message ? 'block' : 'none';
+}
 
 // Load and render prompts
 function initPopup() {
@@ -59,30 +82,25 @@ async function sendToPerplexity(prompt) {
 
     const currentUrl = tab.url;
 
-    // Validate URL protocol
-    if (!currentUrl.startsWith('http://') && !currentUrl.startsWith('https://')) {
-      console.error('Invalid URL protocol:', currentUrl);
+    const result = buildPerplexitySearchUrl({
+      prompt,
+      pageUrl: currentUrl,
+      baseUrl: PERPLEXITY_SEARCH_URL,
+      maxQueryLength: MAX_QUERY_LENGTH
+    });
+
+    if (!result.ok) {
+      console.error('Unable to build Perplexity URL:', result.reason, currentUrl);
+      const message =
+        result.reason === 'unsupported_url'
+          ? 'Unsupported page. Open an http(s) page first.'
+          : 'Unable to build Perplexity query.';
+      showStatus(message);
       return;
     }
 
-    const fullQuery = `${prompt}: ${currentUrl}`;
-    const encodedQuery = encodeURIComponent(fullQuery);
-
-    // Validate query length to avoid URL length limits
-    if (encodedQuery.length > MAX_QUERY_LENGTH) {
-      console.error('Query too long:', encodedQuery.length, 'characters');
-      // Truncate the URL if needed
-      const maxUrlLength = MAX_QUERY_LENGTH - encodeURIComponent(`${prompt}: `).length - 20;
-      const truncatedUrl = currentUrl.substring(0, maxUrlLength) + '...';
-      const truncatedQuery = encodeURIComponent(`${prompt}: ${truncatedUrl}`);
-      const perplexityUrl = PERPLEXITY_SEARCH_URL + truncatedQuery;
-      chrome.tabs.create({ url: perplexityUrl });
-      window.close();
-      return;
-    }
-
-    const perplexityUrl = PERPLEXITY_SEARCH_URL + encodedQuery;
-    chrome.tabs.create({ url: perplexityUrl });
+    showStatus('');
+    chrome.tabs.create({ url: result.url });
     window.close(); // Close the popup after sending
   } catch (error) {
     console.error('Error sending to Perplexity:', error);

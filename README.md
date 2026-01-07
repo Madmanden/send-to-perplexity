@@ -56,6 +56,8 @@ Type `p` + Tab in the Chrome address bar, then:
 - `your query` - Search Perplexity normally
 - `r your query` - Search Reddit only (adds `site:reddit.com`)
 
+Omnibox searches update the current active tab.
+
 Examples:
 - `p best coffee shops` → Searches Perplexity for "best coffee shops"
 - `p r best coffee shops` → Searches Reddit for "best coffee shops"
@@ -77,6 +79,11 @@ This extension:
 - Does not use Perplexity's API
 - No telemetry, analytics, or tracking of any kind
 - All data stays on your device
+
+## Troubleshooting
+
+- If you try to run the extension on a non-`http(s)` page (for example `chrome://extensions`), the extension will refuse to run and briefly show a `!` badge on the toolbar icon.
+- If the generated query becomes too long, the extension truncates the page URL to stay within URL length limits.
 
 ## License
 
