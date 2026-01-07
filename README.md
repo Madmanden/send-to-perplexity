@@ -25,7 +25,7 @@ A Chrome extension that lets you instantly send the current page URL to Perplexi
 2. Open Chrome and go to `chrome://extensions/`
 3. Enable "Developer mode" (toggle in top right)
 4. Click "Load unpacked"
-5. Select the `perplexity-extension` folder
+5. Select the folder that contains `manifest.json` (the repo folder)
 
 ## Usage
 
@@ -66,8 +66,8 @@ Examples:
 
 - `manifest.json` - Extension configuration (Manifest V3)
 - `constants.js` - Shared constants and default prompts
+- `perplexity.js` - Shared Perplexity URL/query builder used by the background script
 - `background.js` - Service worker (main functionality, context menus, storage)
-- `popup.html` / `popup.js` - Popup UI with all available prompts
 - `options.html` / `options.js` - Options page for customizing prompts
 
 ## Privacy
