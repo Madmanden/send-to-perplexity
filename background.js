@@ -73,7 +73,7 @@ async function sendToPerplexity(prompt, tabId = null) {
   try {
     let currentUrl;
 
-    if (tabId) {
+    if (tabId != null) {
       const tab = await chrome.tabs.get(tabId);
       currentUrl = tab.url;
     } else {
