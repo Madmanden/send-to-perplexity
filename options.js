@@ -6,10 +6,16 @@ const status = document.getElementById('status');
 // Single delegated event handler for drag operations (prevents memory leaks)
 let dragoverHandler = null;
 
+function getStoredPrompts(result) {
+  return Array.isArray(result.customPrompts) && result.customPrompts.length > 0
+    ? result.customPrompts
+    : [...DEFAULT_PROMPTS];
+}
+
 // Load prompts from storage or use defaults
 function loadPrompts() {
   chrome.storage.local.get(['customPrompts'], (result) => {
-    const prompts = result.customPrompts || DEFAULT_PROMPTS;
+    const prompts = getStoredPrompts(result);
     renderPrompts(prompts);
   });
 }
@@ -147,7 +153,12 @@ function getDragAfterElement(container, y) {
 
 function deletePrompt(id) {
   chrome.storage.local.get(['customPrompts'], (result) => {
-    const existing = result.customPrompts || [...DEFAULT_PROMPTS];
+    const existing = getStoredPrompts(result);
+    if (existing.length === 1) {
+      showStatus('Error: At least one prompt is required', true);
+      return;
+    }
+
     const deletedIndex = existing.findIndex(p => p.id === id);
     const prompts = existing.filter(p => p.id !== id);
     chrome.storage.local.set({ customPrompts: prompts }, () => {
@@ -170,7 +181,7 @@ function deletePrompt(id) {
 // Add new prompt
 document.getElementById('add-prompt').addEventListener('click', () => {
   chrome.storage.local.get(['customPrompts'], (result) => {
-    const prompts = result.customPrompts || [...DEFAULT_PROMPTS];
+    const prompts = getStoredPrompts(result);
     const newPrompt = {
       id: crypto.randomUUID(),
       title: 'New Prompt',

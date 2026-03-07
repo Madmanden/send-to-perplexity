@@ -5,6 +5,10 @@ import { buildPerplexitySearchUrl } from './perplexity.js';
 // Current prompts in use (either defaults or user-customized)
 let currentPrompts = [...DEFAULT_PROMPTS];
 
+function getValidPrompts(prompts) {
+  return Array.isArray(prompts) && prompts.length > 0 ? prompts : DEFAULT_PROMPTS;
+}
+
 function showActionError(reason) {
   const message =
     reason === 'unsupported_url'
@@ -26,9 +30,7 @@ function showActionError(reason) {
 // Initialize prompts from storage
 async function initPrompts() {
   const result = await chrome.storage.local.get(['customPrompts']);
-  if (result.customPrompts) {
-    currentPrompts = result.customPrompts;
-  }
+  currentPrompts = getValidPrompts(result.customPrompts);
   updateContextMenus();
 }
 
@@ -36,7 +38,7 @@ async function initPrompts() {
 function updateContextMenus() {
   chrome.contextMenus.removeAll(() => {
     // Ensure currentPrompts is valid
-    const prompts = currentPrompts || DEFAULT_PROMPTS;
+    const prompts = getValidPrompts(currentPrompts);
 
     // Create a menu item for each prompt
     prompts.forEach(promptOption => {
@@ -52,7 +54,7 @@ function updateContextMenus() {
 // Listen for storage changes to update currentPrompts and context menus
 chrome.storage.onChanged.addListener((changes, areaName) => {
   if (areaName === 'local' && changes.customPrompts) {
-    currentPrompts = changes.customPrompts.newValue || DEFAULT_PROMPTS;
+    currentPrompts = getValidPrompts(changes.customPrompts.newValue);
     updateContextMenus();
   }
 });
@@ -166,6 +168,10 @@ function escapeOmniboxDescription(value) {
 
 // Handle extension icon click - quick send with last used prompt
 chrome.action.onClicked.addListener(async (tab) => {
+  if (!currentPrompts.length) {
+    await initPrompts();
+  }
+
   const data = await chrome.storage.local.get(['lastPromptMeta']);
   const promptMeta = data.lastPromptMeta || {
     type: 'preset',
@@ -189,8 +195,17 @@ chrome.runtime.onInstalled.addListener(async () => {
   });
 });
 
+// Rehydrate prompt state whenever the MV3 service worker starts up.
+initPrompts().catch((error) => {
+  console.error('Failed to initialize prompts:', error);
+});
+
 // Handle context menu clicks
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+  if (!currentPrompts.some(p => p.id === info.menuItemId)) {
+    await initPrompts();
+  }
+
   // Handle preset prompts
   const selectedPrompt = currentPrompts.find(p => p.id === info.menuItemId);
   if (selectedPrompt) {

@@ -2,6 +2,40 @@ export function isHttpUrl(url) {
   return typeof url === "string" && (url.startsWith("http://") || url.startsWith("https://"));
 }
 
+const ELLIPSIS = "...";
+
+function truncateToEncodedLength(value, maxEncodedLength) {
+  if (maxEncodedLength <= 0) {
+    return "";
+  }
+
+  if (encodeURIComponent(value).length <= maxEncodedLength) {
+    return value;
+  }
+
+  const ellipsisLength = encodeURIComponent(ELLIPSIS).length;
+  if (maxEncodedLength <= ellipsisLength) {
+    return "";
+  }
+
+  let low = 0;
+  let high = value.length;
+  let best = "";
+
+  while (low <= high) {
+    const mid = Math.floor((low + high) / 2);
+    const candidate = `${value.slice(0, mid)}${ELLIPSIS}`;
+    if (encodeURIComponent(candidate).length <= maxEncodedLength) {
+      best = candidate;
+      low = mid + 1;
+    } else {
+      high = mid - 1;
+    }
+  }
+
+  return best;
+}
+
 export function buildPerplexitySearchUrl({
   prompt,
   pageUrl,
@@ -32,10 +66,18 @@ export function buildPerplexitySearchUrl({
     return { ok: true, url: baseUrl + encodedQuery, truncated: false };
   }
 
-  const maxUrlLength = maxQueryLength - encodeURIComponent(promptPrefix).length - 20;
-  const safeMaxUrlLength = Math.max(0, maxUrlLength);
-  const truncatedUrl = `${pageUrl.substring(0, safeMaxUrlLength)}...`;
-  const truncatedQuery = encodeURIComponent(`${promptPrefix}${truncatedUrl}`);
+  const encodedPageUrlLength = encodeURIComponent(pageUrl).length;
+  const targetUrlLength = Math.max(1, Math.floor(maxQueryLength * 0.25));
+  const minPromptBudget = maxQueryLength - targetUrlLength;
+  const truncatedPromptPrefix = `${truncateToEncodedLength(prompt, Math.max(0, minPromptBudget - encodeURIComponent(": ").length))}: `;
+  const promptBudget = Math.min(maxQueryLength, encodeURIComponent(truncatedPromptPrefix).length);
+  const remainingUrlBudget = Math.max(0, maxQueryLength - promptBudget);
+  const truncatedUrl = truncateToEncodedLength(pageUrl, remainingUrlBudget);
+  const truncatedQuery = encodeURIComponent(`${truncatedPromptPrefix}${truncatedUrl}`);
 
-  return { ok: true, url: baseUrl + truncatedQuery, truncated: true };
+  return {
+    ok: true,
+    url: baseUrl + truncatedQuery,
+    truncated: truncatedPromptPrefix !== promptPrefix || truncatedUrl !== pageUrl || encodedPageUrlLength > remainingUrlBudget
+  };
 }
