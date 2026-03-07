@@ -35,7 +35,7 @@ function renderPrompts(prompts) {
 
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'delete-btn';
-    deleteBtn.setAttribute('data-index', index);
+    deleteBtn.setAttribute('data-id', p.id);
     deleteBtn.setAttribute('title', 'Delete prompt');
     deleteBtn.setAttribute('aria-label', `Delete prompt: ${p.title}`);
     deleteBtn.textContent = '×';
@@ -91,12 +91,12 @@ function renderPrompts(prompts) {
       card.classList.remove('dragging');
     });
 
-    // Add keyboard support for deletion
+    // Add keyboard support for deletion (only when focus is not inside a text field)
     card.addEventListener('keydown', (e) => {
-      if (e.key === 'Delete' && (e.target === card || e.target.classList.contains('prompt-title') || e.target.classList.contains('prompt-text'))) {
+      if (e.key === 'Delete' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
         e.preventDefault();
         if (confirm(`Delete prompt "${p.title}"?`)) {
-          deletePrompt(index);
+          deletePrompt(p.id);
         }
       }
     });
@@ -125,8 +125,8 @@ function renderPrompts(prompts) {
   // Add delete event listeners
   document.querySelectorAll('.delete-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
-      const index = parseInt(e.target.dataset.index);
-      deletePrompt(index);
+      const id = e.target.dataset.id;
+      deletePrompt(id);
     });
   });
 }
@@ -145,19 +145,19 @@ function getDragAfterElement(container, y) {
   }, { offset: Number.NEGATIVE_INFINITY }).element;
 }
 
-function deletePrompt(index) {
+function deletePrompt(id) {
   chrome.storage.local.get(['customPrompts'], (result) => {
-    const prompts = result.customPrompts || [...DEFAULT_PROMPTS];
-    prompts.splice(index, 1);
+    const existing = result.customPrompts || [...DEFAULT_PROMPTS];
+    const deletedIndex = existing.findIndex(p => p.id === id);
+    const prompts = existing.filter(p => p.id !== id);
     chrome.storage.local.set({ customPrompts: prompts }, () => {
       renderPrompts(prompts);
       showStatus('Prompt deleted');
 
-      // Focus management: focus on the next available prompt card
+      // Focus management: focus on the card at the same position, or the last card
       const cards = container.querySelectorAll('.prompt-card');
       if (cards.length > 0) {
-        // Focus on same index (now the next card) or the last card if we deleted the last one
-        const focusIndex = Math.min(index, cards.length - 1);
+        const focusIndex = Math.min(deletedIndex, cards.length - 1);
         const titleInput = cards[focusIndex].querySelector('.prompt-title');
         if (titleInput) {
           titleInput.focus();
