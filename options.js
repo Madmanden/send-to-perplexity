@@ -1,4 +1,5 @@
 import { DEFAULT_PROMPTS, STATUS_TIMEOUT_MS } from './constants.js';
+import { getValidPrompts } from './prompt-state.js';
 
 const container = document.getElementById('prompts-container');
 const status = document.getElementById('status');
@@ -7,9 +8,7 @@ const status = document.getElementById('status');
 let dragoverHandler = null;
 
 function getStoredPrompts(result) {
-  return Array.isArray(result.customPrompts) && result.customPrompts.length > 0
-    ? result.customPrompts
-    : [...DEFAULT_PROMPTS];
+  return getValidPrompts(result.customPrompts);
 }
 
 // Load prompts from storage or use defaults
@@ -200,26 +199,24 @@ document.getElementById('save').addEventListener('click', () => {
   const titles = document.querySelectorAll('.prompt-title');
   const texts = document.querySelectorAll('.prompt-text');
 
-  // Validate and filter out empty prompts
-  const newPrompts = Array.from(titles)
-    .map((titleInput, index) => ({
-      id: titleInput.dataset.id,
-      title: titleInput.value.trim(),
-      prompt: texts[index].value.trim()
-    }))
-    .filter(p => p.title && p.prompt); // Remove prompts with empty title or text
+  const newPrompts = Array.from(titles).map((titleInput, index) => ({
+    id: titleInput.dataset.id,
+    title: titleInput.value.trim(),
+    prompt: texts[index].value.trim()
+  }));
 
-  // Ensure at least one prompt exists
   if (newPrompts.length === 0) {
     showStatus('Error: At least one prompt is required', true);
     return;
   }
 
+  const incompletePromptIndex = newPrompts.findIndex(prompt => !prompt.title || !prompt.prompt);
+  if (incompletePromptIndex !== -1) {
+    showStatus('Error: Fill in every prompt title and template before saving', true);
+    return;
+  }
+
   chrome.storage.local.set({ customPrompts: newPrompts }, () => {
-    // If prompts were filtered out, re-render to show the cleaned version
-    if (newPrompts.length !== titles.length) {
-      renderPrompts(newPrompts);
-    }
     showStatus('Settings saved!');
   });
 });

@@ -1,13 +1,11 @@
 // Background service worker for the extension
 import { DEFAULT_PROMPTS, PERPLEXITY_SEARCH_URL, MAX_QUERY_LENGTH } from './constants.js';
-import { buildPerplexitySearchUrl } from './perplexity.js';
+import { buildPerplexitySearchQueryUrl, buildPerplexitySearchUrl } from './perplexity.js';
+import { getValidPrompts, resolvePromptFromMeta } from './prompt-state.js';
 
 // Current prompts in use (either defaults or user-customized)
 let currentPrompts = [...DEFAULT_PROMPTS];
-
-function getValidPrompts(prompts) {
-  return Array.isArray(prompts) && prompts.length > 0 ? prompts : DEFAULT_PROMPTS;
-}
+let contextMenuUpdateQueue = Promise.resolve();
 
 function showActionError(reason) {
   const message =
@@ -15,7 +13,9 @@ function showActionError(reason) {
       ? 'Unsupported page'
       : reason === 'invalid_prompt'
         ? 'Invalid prompt'
-        : 'Error';
+        : reason === 'query_budget_too_small'
+          ? 'Query too long'
+          : 'Error';
 
   chrome.action.setBadgeBackgroundColor({ color: '#d73a49' });
   chrome.action.setBadgeText({ text: '!' });
@@ -31,24 +31,48 @@ function showActionError(reason) {
 async function initPrompts() {
   const result = await chrome.storage.local.get(['customPrompts']);
   currentPrompts = getValidPrompts(result.customPrompts);
-  updateContextMenus();
+  await updateContextMenus();
+}
+
+async function removeAllContextMenus() {
+  await new Promise(resolve => {
+    chrome.contextMenus.removeAll(() => resolve());
+  });
+}
+
+async function createContextMenuItem(promptOption) {
+  await new Promise(resolve => {
+    chrome.contextMenus.create({
+      id: promptOption.id,
+      title: promptOption.title,
+      contexts: ["page"]
+    }, () => {
+      if (chrome.runtime.lastError) {
+        console.error('Failed to create context menu item:', promptOption.id, chrome.runtime.lastError.message);
+      }
+      resolve();
+    });
+  });
 }
 
 // Function to update context menus
 function updateContextMenus() {
-  chrome.contextMenus.removeAll(() => {
+  const updatePromise = contextMenuUpdateQueue.then(async () => {
+    await removeAllContextMenus();
+
     // Ensure currentPrompts is valid
     const prompts = getValidPrompts(currentPrompts);
 
-    // Create a menu item for each prompt
-    prompts.forEach(promptOption => {
-      chrome.contextMenus.create({
-        id: promptOption.id,
-        title: promptOption.title,
-        contexts: ["page"]
-      });
-    });
+    for (const promptOption of prompts) {
+      await createContextMenuItem(promptOption);
+    }
   });
+
+  contextMenuUpdateQueue = updatePromise.catch(error => {
+    console.error('Failed to update context menus:', error);
+  });
+
+  return contextMenuUpdateQueue;
 }
 
 // Listen for storage changes to update currentPrompts and context menus
@@ -60,12 +84,11 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
 });
 
 // Helper function to save prompt metadata
-async function savePromptMeta(type, promptId, promptText) {
+async function savePromptMeta(type, promptId) {
   await chrome.storage.local.set({
     lastPromptMeta: {
       type: type,
-      id: promptId || null,
-      text: promptText
+      id: promptId || null
     }
   });
 }
@@ -132,13 +155,23 @@ function buildPerplexityOmniboxQuery(mode, query) {
 }
 
 function openPerplexitySearch(query) {
-  const trimmedQuery = (query || "").trim();
+  const trimmedQuery = (query || '').trim();
   if (!trimmedQuery) {
     return;
   }
 
-  const encoded = encodeURIComponent(trimmedQuery);
-  const url = PERPLEXITY_SEARCH_URL + encoded;
+  const result = buildPerplexitySearchQueryUrl({
+    query: trimmedQuery,
+    baseUrl: PERPLEXITY_SEARCH_URL,
+    maxQueryLength: MAX_QUERY_LENGTH
+  });
+
+  if (!result.ok) {
+    console.error('Unable to build Perplexity query URL:', result.reason, trimmedQuery);
+    return;
+  }
+
+  const url = result.url;
 
   // Get the active tab and update it instead of creating a new one
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -173,12 +206,11 @@ chrome.action.onClicked.addListener(async (tab) => {
   }
 
   const data = await chrome.storage.local.get(['lastPromptMeta']);
-  const promptMeta = data.lastPromptMeta || {
-    type: 'preset',
-    id: 'key-insights',
-    text: currentPrompts[0].prompt
-  };
-  await sendToPerplexity(promptMeta.text);
+  const prompt = resolvePromptFromMeta(
+    data.lastPromptMeta || { type: 'preset', id: 'key-insights' },
+    currentPrompts
+  );
+  await sendToPerplexity(prompt.prompt);
 });
 
 // Create context menus on install
@@ -190,7 +222,7 @@ chrome.runtime.onInstalled.addListener(async () => {
   // Initialize storage with default prompt metadata if not present
   chrome.storage.local.get(['lastPromptMeta'], (result) => {
     if (!result.lastPromptMeta) {
-      savePromptMeta('preset', currentPrompts[0].id, currentPrompts[0].prompt);
+      savePromptMeta('preset', currentPrompts[0].id);
     }
   });
 });
@@ -210,7 +242,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   const selectedPrompt = currentPrompts.find(p => p.id === info.menuItemId);
   if (selectedPrompt) {
     // Save to storage
-    await savePromptMeta('preset', selectedPrompt.id, selectedPrompt.prompt);
+    await savePromptMeta('preset', selectedPrompt.id);
     // Send to Perplexity
     await sendToPerplexity(selectedPrompt.prompt, tab.id);
   }

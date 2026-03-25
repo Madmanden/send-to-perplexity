@@ -4,7 +4,7 @@ A Chrome extension that lets you instantly send the current page URL to Perplexi
 
 ## Features
 
-- **Smart Quick Send:** Click the extension icon to use your last-used prompt (defaults to Key Insights)
+- **Smart Quick Send:** Click the extension icon to use your last-used prompt, always reading the latest saved text for that prompt (defaults to Key Insights)
 - **7 Optimized Prompts** (via right-click context menu):
   - ✨ Key Insights - Extract core ideas, actionable takeaways, and unique insights, separating signal from filler
   - 🎯 Quick Digest - 2-3 sentence summary in accessible language
@@ -17,7 +17,7 @@ A Chrome extension that lets you instantly send the current page URL to Perplexi
 - **Customizable:** Add, edit, delete, and reorder prompts via the options page
 - **Memory:** Remembers your last used prompt for quick access
 - **Context Menu Access:** Right-click anywhere for all options
-- **Omnibox Search:** Type `p` + Tab in address bar for quick Perplexity searches
+- **Omnibox Search:** Type `p` + Tab in address bar for quick Perplexity searches, with long queries safely truncated to stay within URL limits
 
 ## Installation
 
@@ -51,6 +51,8 @@ The extension remembers your last-used prompt for quick access via the icon butt
 6. Click "Save Changes" to apply
 7. Use "Reset to Defaults" to restore the original 7 prompts
 
+Note: every prompt row must have both a title and prompt text before you save. Delete any row you do not want to keep.
+
 ### Omnibox Search (Address Bar)
 Type `p` + Tab in the Chrome address bar, then:
 - `your query` - Search Perplexity normally
@@ -66,7 +68,8 @@ Examples:
 
 - `manifest.json` - Extension configuration (Manifest V3)
 - `constants.js` - Shared constants and default prompts
-- `perplexity.js` - Shared Perplexity URL/query builder used by the background script
+- `prompt-state.js` - Shared prompt lookup and fallback helpers
+- `perplexity.js` - Shared Perplexity URL/query builder used by the background script and omnibox search
 - `background.js` - Service worker (main functionality, context menus, storage)
 - `options.html` / `options.js` - Options page for customizing prompts
 
@@ -83,7 +86,7 @@ This extension:
 ## Troubleshooting
 
 - If you try to run the extension on a non-`http(s)` page (for example `chrome://extensions`), the extension will refuse to run and briefly show a `!` badge on the toolbar icon.
-- If the generated query becomes too long, the extension truncates the page URL to stay within URL length limits.
+- If the generated query becomes too long, the extension safely truncates the content to stay within URL length limits for both quick send and omnibox searches.
 
 ## License
 
