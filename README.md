@@ -2,6 +2,8 @@
 
 A Chrome extension that lets you instantly send the current page URL to Perplexity for AI-powered analysis.
 
+**More tools:** [christianholmdev.dk/tools](https://christianholmdev.dk/tools/)
+
 ## Features
 
 - **Smart Quick Send:** Click the extension icon to use your last-used prompt, always reading the latest saved text for that prompt (defaults to Key Insights)
